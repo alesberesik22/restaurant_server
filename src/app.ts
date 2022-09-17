@@ -1,10 +1,17 @@
 import express, { Application, NextFunction } from "express";
+import cors from "cors";
 import pg from "pg";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const app: Application = express();
+const corsProps = {
+  origin: "*",
+  credentials: true, //access-control-allow-credentials:true
+  optionSuccessStatus: 200,
+};
+app.use(cors(corsProps));
 app.use(express.json());
 
 const client = new pg.Client({
@@ -46,7 +53,16 @@ app.get("/:schema/:month/:day", (req, res, next) => {
   );
 });
 app.post("/:schema/:month/:day/:hour", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
   res.header("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With,content-type"
+  );
   const data = JSON.stringify(req.body);
   client.query(
     `UPDATE "${req.params.schema}"."${req.params.month}" SET "${req.params.hour}" = '${data}' WHERE id=${req.params.day}`
